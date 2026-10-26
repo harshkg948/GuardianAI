@@ -1,0 +1,26 @@
+# Python virtual environment
+venv/
+ENV/
+env/
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local test video files & sample media
+*.mp4
+*.avi
+*.mov
+sample_feed.mp4
+
+# Generated CSV audit logs
+exports/*.csv
+
+# IDE & Editor settings
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db

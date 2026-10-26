@@ -1,0 +1,4 @@
+opencv-python>=5.0.0
+numpy
+boto3
+pyyaml

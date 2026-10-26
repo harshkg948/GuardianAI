@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GuardianAI - Active Vision Console</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-card: #1e293b;
+            --bg-subtle: #334155;
+            --border-color: #475569;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-blue: #2563eb;
+            --accent-green: #16a34a;
+            --accent-red: #dc2626;
+            --accent-amber: #d97706;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            padding: 24px;
+            line-height: 1.5;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header-title h1 {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .header-title p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background-color: rgba(22, 163, 74, 0.15);
+            border: 1px solid rgba(22, 163, 74, 0.4);
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #4ade80;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #22c55e;
+            border-radius: 50%;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            background-color: #000000;
+            border-radius: 6px;
+            overflow: hidden;
+            aspect-ratio: 16 / 9;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .controls-bar {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .btn {
+            background-color: var(--bg-subtle);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #475569;
+        }
+
+        .btn-danger {
+            background-color: rgba(220, 38, 38, 0.2);
+            border-color: rgba(220, 38, 38, 0.5);
+            color: #fca5a5;
+        }
+
+        .btn-danger:hover {
+            background-color: rgba(220, 38, 38, 0.4);
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: left;
+        }
+
+        .data-table th {
+            padding: 8px 12px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 500;
+        }
+
+        .data-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(71, 85, 105, 0.5);
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .tag-normal {
+            background-color: rgba(37, 99, 235, 0.2);
+            color: #93c5fd;
+        }
+
+        .tag-alert {
+            background-color: rgba(220, 38, 38, 0.2);
+            color: #fca5a5;
+        }
+
+        .log-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 12px;
+        }
+
+        .log-item {
+            padding: 10px;
+            background-color: var(--bg-primary);
+            border-left: 3px solid var(--accent-blue);
+            border-radius: 0 4px 4px 0;
+        }
+
+        .log-item.alert {
+            border-left-color: var(--accent-red);
+        }
+
+        .log-time {
+            color: var(--text-muted);
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+
+        .code-box {
+            background-color: var(--bg-primary);
+            padding: 12px;
+            border-radius: 6px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 11px;
+            color: #a5f3fc;
+            word-break: break-all;
+            border: 1px solid var(--border-color);
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-title">
+            <h1>GuardianAI Monitoring Console</h1>
+            <p>Device ID: BANK_ATM_VAULT_CAM_01 | Location: Vault Zone A</p>
+        </div>
+        <div class="status-badge">
+            <span class="status-dot"></span>
+            System Active
+        </div>
+    </header>
+
+    <main class="dashboard-grid">
+        <section class="main-content">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Live Edge Stream</span>
+                    <span style="font-size: 12px; color: var(--text-muted);" id="fpsCounter">FPS: 30</span>
+                </div>
+                <div class="video-container">
+                    <canvas id="streamCanvas" width="640" height="360"></canvas>
+                </div>
+                <div class="controls-bar">
+                    <button class="btn" onclick="togglePrivacy()">Toggle Privacy Mask</button>
+                    <button class="btn btn-danger" onclick="triggerAlert()">Simulate Loitering Threat</button>
+                    <button class="btn" onclick="resetSim()">Reset Pipeline</button>
+                </div>
+            </div>
+        </section>
+
+        <aside class="sidebar">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Tracked Entities</span>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Position</th>
+                            <th>Dwell Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="targetTable">
+                        <tr>
+                            <td>#0</td>
+                            <td>(160, 265)</td>
+                            <td>138.5s</td>
+                            <td><span class="tag tag-alert">Loitering</span></td>
+                        </tr>
+                        <tr>
+                            <td>#1</td>
+                            <td>(400, 230)</td>
+                            <td>11.9s</td>
+                            <td><span class="tag tag-normal">Normal</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Agentic Actions Log</span>
+                </div>
+                <ul class="log-list" id="actionLogs">
+                    <li class="log-item alert">
+                        <div class="log-time">12:04:15 - Target #0</div>
+                        <div>Trigger: LOITERING_THRESHOLD_EXCEEDED</div>
+                        <div style="color: var(--text-muted); margin-top: 2px;">Action: Adaptive Zoom ROI Lock & Push Alert</div>
+                    </li>
+                    <li class="log-item">
+                        <div class="log-time">12:02:00 - System</div>
+                        <div>Privacy Engine Initialized (Haar Masking Active)</div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">AWS KMS Encrypted Payload</span>
+                </div>
+                <div class="code-box" id="kmsPayload">
+                    eyJkZXZpY2VfaWQiOiAiQkFOS19BVE1fVkFVTFRfQ0FNXzAxIiwgInRpbWVzdGFtcCI6IDE2OTg0MDIyNDAsICJ0cmFja2VkX2VudGl0aWVzIjogW3siaWQiOiAwLCAiZHdlbGxfdGltZV9zZWNvbmRzIjogMTM4LjV9XX0=
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <script>
+        const canvas = document.getElementById('streamCanvas');
+        const ctx = canvas.getContext('2d');
+        let privacyActive = true;
+        let simulatedAlert = true;
+
+        function drawFrame() {
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Mock CCTV grid background lines
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 1;
+            for(let x = 0; x < canvas.width; x += 40) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+            }
+            for(let y = 0; y < canvas.height; y += 40) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+            }
+
+            // Target 1 (Normal)
+            ctx.fillStyle = '#22c55e';
+            ctx.beginPath();
+            ctx.arc(400, 230, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#f8fafc';
+            ctx.font = '12px system-ui';
+            ctx.fillText('ID #1 [11.9s]', 380, 215);
+
+            // Target 0 (Loitering Alert)
+            if(simulatedAlert) {
+                ctx.strokeStyle = '#dc2626';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(120, 200, 80, 110);
+
+                ctx.fillStyle = '#dc2626';
+                ctx.beginPath();
+                ctx.arc(160, 255, 6, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#ef4444';
+                ctx.fillText('ID #0 [138.5s] - ALERT', 110, 190);
+            }
+
+            // Privacy Overlay Indicator
+            if(privacyActive) {
+                ctx.fillStyle = 'rgba(22, 163, 74, 0.2)';
+                ctx.fillRect(10, 10, 160, 26);
+                ctx.strokeStyle = '#16a34a';
+                ctx.strokeRect(10, 10, 160, 26);
+                ctx.fillStyle = '#4ade80';
+                ctx.font = '11px system-ui';
+                ctx.fillText('PRIVACY MASKING ACTIVE', 18, 27);
+            }
+
+            requestAnimationFrame(drawFrame);
+        }
+
+        function togglePrivacy() {
+            privacyActive = !privacyActive;
+        }
+
+        function triggerAlert() {
+            simulatedAlert = true;
+        }
+
+        function resetSim() {
+            simulatedAlert = false;
+        }
+
+        drawFrame();
+    </script>
+</body>
+</html>

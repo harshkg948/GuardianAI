@@ -1,0 +1,18 @@
+system:
+  device_id: "BANK_ATM_VAULT_CAM_01"
+  fps: 30
+  resolution: [640, 480]
+
+tracker:
+  max_disappeared_frames: 40
+  loitering_threshold_seconds: 120
+
+security:
+  anonymize_faces: true
+  blur_kernel_size: 51
+  encryption_algorithm: "AES-256-KMS"
+
+aws:
+  region: "us-east-1"
+  s3_bucket: "guardian-ai-telemetry-logs"
+  kms_key_id: "alias/guardian-ai-key"
